@@ -1,27 +1,34 @@
 """
 frontend/views/ai_insights_view.py
-Simple, data-driven Automated Business Insights view.
-Calculates and presents executive findings, key drivers, and anomaly flags
-without requiring external LLM APIs.
+AI Insights & Sales Assistant view.
+Combines:
+1. "Ask Your Data" Sales Assistant (deterministic natural language querying with INR amounts & charts)
+2. Automated Business Insights (narrative findings, performance drivers, and PDF report export)
 """
 
 from typing import Dict, Any
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
+from backend.chat.engine import process_query, EXAMPLE_PROMPTS
 from backend.analytics.insights import generate_executive_insights
 from backend.analytics.kpi import calculate_kpis
 from backend.analytics.categories import get_category_breakdown
 from backend.analytics.geography import get_state_breakdown
 from backend.exports.exporter import generate_executive_pdf
+from backend.analytics.currency import format_inr
+from frontend.components.charts import _clean_chart_layout
 
 
-def render_ai_insights_view(df: pd.DataFrame, currency_symbol: str = "$"):
-    """Renders the Automated Business Insights view."""
+def render_ai_insights_view(df: pd.DataFrame):
+    """Renders the AI Insights & Sales Assistant page."""
     st.markdown("""
-    <div class="dashboard-header">
-        <h1 class="dashboard-title">Automated Business Insights</h1>
-        <div class="dashboard-subtitle">Data-driven findings and performance drivers calculated directly from sales transactions</div>
+    <div class="dash-header-wrap">
+        <div>
+            <h1 class="dash-header-title">AI Insights & Sales Assistant</h1>
+            <div class="dash-header-subtitle">Ask questions about active sales records and inspect data-grounded performance findings</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -29,78 +36,127 @@ def render_ai_insights_view(df: pd.DataFrame, currency_symbol: str = "$"):
         st.info("No active dataset loaded.")
         return
 
-    sym = currency_symbol
-    insights = generate_executive_insights(df)
-    kpis = calculate_kpis(df)
-    cat_df = get_category_breakdown(df)
-    state_df = get_state_breakdown(df)
+    tab_chat, tab_auto = st.tabs(["💬 Ask Your Data (Sales Assistant)", "⚡ Automated Business Insights"])
 
-    # 1. Executive Summary Narrative
-    st.markdown("### 📋 Executive Takeaways")
-    summary_bullets = insights.get("summary_bullets", [])
-    if summary_bullets:
-        for bullet in summary_bullets:
-            st.markdown(f"- {bullet}")
-    else:
-        st.write("Sufficient data dimensions are not available to produce automated takeaways.")
+    # TAB 1: Conversational Sales Assistant
+    with tab_chat:
+        st.markdown("#### Ask a Sales Question")
+        st.caption("Click any sample question or type your own. Answers are calculated strictly from active data in Indian Rupees (₹).")
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        # Quick clickable chips
+        col_c1, col_c2 = st.columns(2)
+        clicked_query = None
 
-    # 2. Key Driver Cards
-    st.markdown("### 🔍 Key Performance Drivers")
-    findings = insights.get("findings", [])
-    if findings:
-        cols = st.columns(min(len(findings), 3))
-        for idx, finding in enumerate(findings[:6]):
-            col = cols[idx % 3]
-            with col:
-                st.markdown(f"""
-                <div class="insight-card">
-                    <div class="insight-card-title">{finding['category']}</div>
-                    <div style="font-size: 1rem; font-weight: 700; color: #0F172A; margin-bottom: 0.35rem;">
-                        {finding['title']}
+        with col_c1:
+            for p in EXAMPLE_PROMPTS[:4]:
+                if st.button(f"👉 {p}", key=f"btn_p_{p}", use_container_width=True):
+                    clicked_query = p
+
+        with col_c2:
+            for p in EXAMPLE_PROMPTS[4:8]:
+                if st.button(f"👉 {p}", key=f"btn_p_{p}", use_container_width=True):
+                    clicked_query = p
+
+        user_input = st.chat_input("Ask a question about sales, categories, regions, or products...")
+        query_to_run = clicked_query or user_input
+
+        if "sales_chat_history" not in st.session_state:
+            st.session_state["sales_chat_history"] = []
+
+        if query_to_run:
+            query_result = process_query(query_to_run, df, currency_symbol="₹")
+            st.session_state["sales_chat_history"].append({
+                "question": query_to_run,
+                "response": query_result
+            })
+
+        # Display latest responses
+        if st.session_state["sales_chat_history"]:
+            st.markdown("<hr style='margin: 1.5rem 0;'>", unsafe_allow_html=True)
+            for idx, item in enumerate(reversed(st.session_state["sales_chat_history"][-4:])):
+                q = item["question"]
+                res = item["response"]
+
+                st.markdown(f"**🧑 User:** *{q}*")
+                
+                if res.get("is_unsupported"):
+                    st.warning(f"**Assistant:** {res['answer_text']}")
+                else:
+                    st.success(f"**Assistant:** {res['answer_text']}")
+
+                # Render main-screen visual if provided
+                chart_data = res.get("chart_data")
+                chart_type = res.get("chart_type")
+
+                if chart_data is not None and not chart_data.empty:
+                    cols = list(chart_data.columns)
+                    if len(cols) >= 2:
+                        x_col, y_col = cols[0], cols[1]
+                        fig = px.bar(
+                            chart_data,
+                            x=x_col,
+                            y=y_col,
+                            color_discrete_sequence=["#1F77B4"],
+                            text=y_col
+                        )
+                        fig.update_traces(texttemplate="₹%{y:,.0f}", textposition="inside")
+                        _clean_chart_layout(fig, title=f"Visual Analysis: {y_col} by {x_col}", height=300)
+                        st.plotly_chart(fig, use_container_width=True)
+
+                st.markdown("<br>", unsafe_allow_html=True)
+
+    # TAB 2: Automated Business Insights
+    with tab_auto:
+        insights = generate_executive_insights(df)
+        kpis = calculate_kpis(df)
+        cat_df = get_category_breakdown(df)
+        state_df = get_state_breakdown(df)
+
+        st.markdown("### 📋 Executive Takeaways")
+        summary_bullets = insights.get("summary_bullets", [])
+        if summary_bullets:
+            for bullet in summary_bullets:
+                st.markdown(f"- {bullet}")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### 🔍 Key Performance Drivers")
+
+        findings = insights.get("findings", [])
+        if findings:
+            f_cols = st.columns(min(len(findings), 3))
+            for idx, finding in enumerate(findings[:6]):
+                col = f_cols[idx % 3]
+                with col:
+                    box_cls = "green" if finding["type"] == "positive" else "orange" if finding["type"] == "warning" else ""
+                    st.markdown(f"""
+                    <div class="insight-box {box_cls}">
+                        <div class="insight-tag">{finding['category']}</div>
+                        <div class="insight-headline">{finding['title']}</div>
+                        <div class="insight-desc">{finding['text']}</div>
                     </div>
-                    <div style="font-size: 0.88rem; color: #334155; line-height: 1.45;">
-                        {finding['text']}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### ⚠️ Transaction Anomalies & Review")
+        anomalies = insights.get("anomalies", pd.DataFrame())
+        if not anomalies.empty:
+            st.dataframe(anomalies, use_container_width=True)
 
-    # 3. Notable High-Value Transaction Review
-    st.markdown("### ⚠️ High-Impact Transaction Outliers")
-    st.caption("Top sales transactions identified for review:")
-
-    anomalies = insights.get("anomalies", pd.DataFrame())
-    if not anomalies.empty:
-        st.dataframe(anomalies, use_container_width=True)
-    else:
-        st.info("No transaction outliers identified in the current dataset.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # 4. Export PDF Report
-    st.markdown("### 📄 Export Insights")
-    date_str = "Full Dataset (2019–2020)"
-    if "_std_order_date" in df.columns:
-        valid_d = df["_std_order_date"].dropna()
-        if len(valid_d) > 0:
-            date_str = f"{valid_d.min().strftime('%Y-%m-%d')} to {valid_d.max().strftime('%Y-%m-%d')}"
-
-    pdf_data = generate_executive_pdf(
-        kpis=kpis,
-        findings=findings,
-        date_range_str=date_str,
-        cat_df=cat_df,
-        state_df=state_df,
-        currency_symbol=sym
-    )
-
-    st.download_button(
-        label="📥 Download Executive Summary PDF Report",
-        data=pdf_data,
-        file_name="executive_sales_insights.pdf",
-        mime="application/pdf",
-        type="primary"
-    )
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### 📄 Export Executive Report")
+        
+        pdf_bytes = generate_executive_pdf(
+            kpis=kpis,
+            findings=findings,
+            date_range_str="Active Filtered Scope",
+            cat_df=cat_df,
+            state_df=state_df,
+            currency_symbol="₹"
+        )
+        st.download_button(
+            label="📥 Download Executive Briefing (PDF)",
+            data=pdf_bytes,
+            file_name="sales_performance_briefing.pdf",
+            mime="application/pdf",
+            type="primary"
+        )

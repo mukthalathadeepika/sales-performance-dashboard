@@ -1,258 +1,239 @@
 """
 frontend/components/charts.py
-Plotly chart builders implementing consistent executive design standards.
-Strictly conforms to PRD Section 4.3 and 4.4.
+High-end Plotly charts designed after executive sales dashboard reference (superstore_analysis.png).
+Features:
+- Monthly Sales and Profit dual-line timeline
+- Category Sales vs. Profit comparative bar chart
+- Diverging Sub-Category / Top Products profit bar chart (Green for positive, Red for losses)
+- Regional Profit Margin % bar chart with overall benchmark line
+- Segment performance donut chart
+All formatted in Indian Rupees (₹).
 """
 
 from typing import Optional
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import pandas as pd
+from backend.analytics.currency import format_inr
 
-# Standard executive colorway
-PALETTE = {
-    "primary": "#2563EB",
-    "secondary": "#6366F1",
-    "accent": "#0D9488",
-    "positive": "#10B981",
-    "negative": "#EF4444",
-    "neutral": "#94A3B8",
-    "background": "#FFFFFF",
-    "grid": "#F1F5F9",
-    "text": "#1E293B",
-    "series": ["#2563EB", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899", "#06B6D4", "#64748B"]
-}
+# Executive palette from reference
+CLR_BLUE = "#1F77B4"
+CLR_TEAL = "#1B7F6D"
+CLR_RED = "#C53030"
+CLR_DARK = "#0F172A"
+CLR_GRID = "#F1F5F9"
+CLR_MUTED = "#64748B"
 
 
-def _apply_standard_layout(fig, title: str = "", height: int = 380):
-    """Applies unified typography, margin, and clean styling to any Plotly chart."""
+def _clean_chart_layout(fig, title: str = "", height: int = 340):
+    """Applies clean minimalist executive layout matching reference image."""
     fig.update_layout(
         title={
             "text": title,
-            "y": 0.96,
+            "y": 0.95,
             "x": 0.02,
             "xanchor": "left",
             "yanchor": "top",
-            "font": {"size": 14, "color": PALETTE["text"], "family": "Inter, sans-serif"}
+            "font": {"size": 14, "color": CLR_DARK, "family": "Inter, system-ui, sans-serif"}
         },
         template="plotly_white",
-        paper_bgcolor=PALETTE["background"],
-        plot_bgcolor=PALETTE["background"],
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
         height=height,
-        margin=dict(l=20, r=20, t=50, b=30),
+        margin=dict(l=15, r=15, t=45, b=25),
         legend=dict(
             orientation="h",
             yanchor="bottom",
             y=1.02,
             xanchor="right",
             x=1,
-            font=dict(size=11, color=PALETTE["text"])
+            font=dict(size=11, color=CLR_DARK)
         ),
-        hoverlabel=dict(
-            bgcolor="white",
-            font_size=12,
-            font_family="Inter, sans-serif"
-        )
+        hoverlabel=dict(bgcolor="white", font_size=12)
     )
-    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor=PALETTE["grid"], zeroline=False)
-    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor=PALETTE["grid"], zeroline=False)
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor=CLR_GRID, zeroline=False)
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor=CLR_GRID, zeroline=False)
     return fig
 
 
-def plot_sales_profit_timeline(df: pd.DataFrame, currency_symbol: str = "") -> go.Figure:
-    """Creates a dual-axis monthly timeline of Sales (bar) and Profit (line)."""
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    sym = currency_symbol
+def plot_monthly_sales_and_profit(df: pd.DataFrame) -> go.Figure:
+    """
+    Dual line chart of Monthly Sales (Blue) and Profit (Teal/Green).
+    Exact match to reference top-left chart.
+    """
+    time_df = df.dropna(subset=["_std_order_date"]).copy()
+    time_df["Month"] = time_df["_std_order_date"].dt.to_period("M").dt.to_timestamp()
+    time_agg = time_df.groupby("Month", as_index=False).agg({
+        "_std_sales": "sum",
+        "_std_profit": "sum"
+    }).sort_values("Month")
+    time_agg["Label"] = time_agg["Month"].dt.strftime("%Y-%m")
 
-    if "Sales" in df.columns:
-        fig.add_trace(
-            go.Bar(
-                x=df["period_label"],
-                y=df["Sales"],
-                name="Sales",
-                marker_color=PALETTE["primary"],
-                opacity=0.85,
-                hovertemplate=f"Sales: {sym}%{{y:,.2f}}<extra></extra>"
-            ),
-            secondary_y=False
-        )
-
-    if "Profit" in df.columns:
-        fig.add_trace(
-            go.Scatter(
-                x=df["period_label"],
-                y=df["Profit"],
-                name="Profit",
-                mode="lines+markers",
-                line=dict(color=PALETTE["positive"], width=2.5),
-                marker=dict(size=6),
-                hovertemplate=f"Profit: {sym}%{{y:,.2f}}<extra></extra>"
-            ),
-            secondary_y=True
-        )
-
-    _apply_standard_layout(fig, title="Monthly Sales & Profit Performance")
-    fig.update_yaxes(title_text="Sales", secondary_y=False, showgrid=True)
-    fig.update_yaxes(title_text="Profit", secondary_y=True, showgrid=False)
-    return fig
-
-
-def plot_cumulative_sales(df: pd.DataFrame, currency_symbol: str = "") -> go.Figure:
-    """Creates a cumulative revenue growth curve."""
     fig = go.Figure()
-    sym = currency_symbol
-    if "Cumulative Sales" in df.columns:
-        fig.add_trace(
-            go.Scatter(
-                x=df["period_label"],
-                y=df["Cumulative Sales"],
-                fill="tozeroy",
-                mode="lines",
-                line=dict(color=PALETTE["primary"], width=2),
-                fillcolor="rgba(37, 99, 235, 0.1)",
-                name="Cumulative Sales",
-                hovertemplate=f"Cumulative: {sym}%{{y:,.2f}}<extra></extra>"
-            )
-        )
-    _apply_standard_layout(fig, title="Cumulative Revenue Over Time")
-    return fig
-
-
-def plot_top_products_bar(top_df: pd.DataFrame, metric: str = "Sales", currency_symbol: str = "") -> go.Figure:
-    """Horizontal bar chart for top products."""
-    fig = go.Figure()
-    sym = currency_symbol if metric in ["Sales", "Profit"] else ""
-    if not top_df.empty:
-        # Sort ascending for horizontal bar (so top is at top)
-        df_sorted = top_df.sort_values(metric, ascending=True)
-        fig.add_trace(
-            go.Bar(
-                y=df_sorted["Product Name"].str.slice(0, 35) + "...",
-                x=df_sorted[metric],
-                orientation="h",
-                marker_color=PALETTE["primary"],
-                hovertemplate=f"%{{y}}<br>{metric}: {sym}%{{x:,.2f}}<extra></extra>"
-            )
-        )
-    _apply_standard_layout(fig, title=f"Top Products by {metric}")
-    fig.update_layout(margin=dict(l=150, r=20, t=50, b=30))
-    return fig
-
-
-def plot_loss_products_bar(bottom_df: pd.DataFrame, currency_symbol: str = "") -> go.Figure:
-    """Horizontal bar chart for bottom/loss-making products."""
-    fig = go.Figure()
-    sym = currency_symbol
-    if not bottom_df.empty and "Profit" in bottom_df.columns:
-        df_sorted = bottom_df.sort_values("Profit", ascending=False)
-        colors_list = [PALETTE["negative"] if val < 0 else PALETTE["neutral"] for val in df_sorted["Profit"]]
-        fig.add_trace(
-            go.Bar(
-                y=df_sorted["Product Name"].str.slice(0, 35) + "...",
-                x=df_sorted["Profit"],
-                orientation="h",
-                marker_color=colors_list,
-                hovertemplate=f"%{{y}}<br>Profit: {sym}%{{x:,.2f}}<extra></extra>"
-            )
-        )
-    _apply_standard_layout(fig, title="Bottom Products by Profit (Loss-Making Alerts)")
-    fig.update_layout(margin=dict(l=150, r=20, t=50, b=30))
-    return fig
-
-
-def plot_category_treemap(df: pd.DataFrame, currency_symbol: str = "") -> go.Figure:
-    """Interactive Treemap for Category -> Sub-Category hierarchy."""
-    sym = currency_symbol
-    fig = px.treemap(
-        df,
-        path=["Category", "Sub-Category"],
-        values="Sales",
-        color="Profit Margin %",
-        color_continuous_scale=["#EF4444", "#F59E0B", "#10B981"],
-        color_continuous_midpoint=0,
-        hover_data={"Sales": f":,{sym}.2f", "Profit": f":,{sym}.2f", "Profit Margin %": ":.1f%"}
-    )
-    _apply_standard_layout(fig, title="Category & Sub-Category Treemap (Sized by Sales, Colored by Margin %)")
-    fig.update_layout(margin=dict(l=10, r=10, t=50, b=10))
-    return fig
-
-
-def plot_us_state_choropleth(state_df: pd.DataFrame, metric: str = "Sales", currency_symbol: str = "") -> go.Figure:
-    """Choropleth map of US States."""
-    sym = currency_symbol if metric in ["Sales", "Profit"] else ""
-    valid_states = state_df.dropna(subset=["State Code"])
     
-    fig = go.Figure(data=go.Choropleth(
-        locations=valid_states["State Code"],
-        z=valid_states[metric],
-        locationmode='USA-states',
-        colorscale='Blues',
-        colorbar_title=metric,
-        text=valid_states["State"],
-        hovertemplate=f"<b>%{{text}}</b><br>{metric}: {sym}%{{z:,.2f}}<extra></extra>"
+    # Sales Line
+    fig.add_trace(go.Scatter(
+        x=time_agg["Label"],
+        y=time_agg["_std_sales"],
+        mode="lines",
+        name="Sales",
+        line=dict(color=CLR_BLUE, width=2.5),
+        hovertemplate="<b>Sales</b>: ₹%{y:,.2f}<extra></extra>"
     ))
-    
-    fig.update_layout(
-        geo_scope='usa',
-        title={
-            "text": f"Geographic Distribution by State ({metric})",
-            "y": 0.96,
-            "x": 0.02,
-            "font": {"size": 14, "color": PALETTE["text"]}
-        },
-        margin=dict(l=0, r=0, t=40, b=0),
-        height=380,
-        paper_bgcolor=PALETTE["background"]
-    )
+
+    # Profit Line
+    fig.add_trace(go.Scatter(
+        x=time_agg["Label"],
+        y=time_agg["_std_profit"],
+        mode="lines",
+        name="Profit",
+        line=dict(color=CLR_TEAL, width=2.5),
+        hovertemplate="<b>Profit</b>: ₹%{y:,.2f}<extra></extra>"
+    ))
+
+    _clean_chart_layout(fig, title="Monthly sales and profit")
+    fig.update_xaxes(tickangle=-30)
+    fig.update_yaxes(tickprefix="₹", tickformat="~s")
     return fig
 
 
-def plot_segment_donut(segment_df: pd.DataFrame, currency_symbol: str = "") -> go.Figure:
-    """Customer segment distribution donut chart."""
-    fig = go.Figure(data=[go.Pie(
-        labels=segment_df["Segment"],
-        values=segment_df["Sales"],
-        hole=0.55,
-        marker=dict(colors=PALETTE["series"]),
-        textinfo='label+percent',
-        hovertemplate=f"Segment: %{{label}}<br>Sales: {currency_symbol}%{{value:,.2f}} (%{{percent}})<extra></extra>"
-    )])
-    _apply_standard_layout(fig, title="Sales by Customer Segment")
-    return fig
+def plot_category_sales_vs_profit(df: pd.DataFrame) -> go.Figure:
+    """
+    Category sales vs. profit horizontal comparative bar chart.
+    Exact match to reference top-right chart.
+    """
+    cat_agg = df.groupby("_std_category", as_index=False).agg({
+        "_std_sales": "sum",
+        "_std_profit": "sum"
+    }).sort_values("_std_sales", ascending=True)
 
-
-def plot_shipping_modes_bar(shipping_df: pd.DataFrame) -> go.Figure:
-    """Shipping modes distribution and transit days."""
     fig = go.Figure()
-    if not shipping_df.empty:
-        fig.add_trace(
-            go.Bar(
-                x=shipping_df["Ship Mode"],
-                y=shipping_df["Orders"],
-                name="Orders",
-                marker_color=PALETTE["primary"],
-                opacity=0.85
-            )
-        )
-    _apply_standard_layout(fig, title="Orders by Shipping Mode")
+
+    # Sales Bar
+    fig.add_trace(go.Bar(
+        y=cat_agg["_std_category"],
+        x=cat_agg["_std_sales"],
+        orientation="h",
+        name="Sales",
+        marker_color=CLR_BLUE,
+        hovertemplate="<b>%{y} Sales</b>: ₹%{x:,.2f}<extra></extra>"
+    ))
+
+    # Profit Bar
+    fig.add_trace(go.Bar(
+        y=cat_agg["_std_category"],
+        x=cat_agg["_std_profit"],
+        orientation="h",
+        name="Profit",
+        marker_color=CLR_TEAL,
+        hovertemplate="<b>%{y} Profit</b>: ₹%{x:,.2f}<extra></extra>"
+    ))
+
+    _clean_chart_layout(fig, title="Category sales vs. profit")
+    fig.update_layout(barmode="group", yaxis_title=None)
+    fig.update_xaxes(tickprefix="₹", tickformat="~s")
     return fig
 
 
-def plot_quadrant_scatter(df: pd.DataFrame, currency_symbol: str = "") -> go.Figure:
-    """Sales vs Profit Margin Scatter Quadrant."""
-    sym = currency_symbol
-    fig = px.scatter(
-        df,
-        x="Sales",
-        y="Profit Margin %",
-        size="Quantity" if "Quantity" in df.columns else None,
-        color="Category" if "Category" in df.columns else None,
-        text="Sub-Category" if "Sub-Category" in df.columns else None,
-        hover_name="Sub-Category" if "Sub-Category" in df.columns else None,
-        color_discrete_sequence=PALETTE["series"],
+def plot_profit_by_subcategory(df: pd.DataFrame) -> go.Figure:
+    """
+    Profit by sub-category horizontal diverging bar chart.
+    Green for positive profit, Red for negative loss.
+    Exact match to reference bottom-left chart.
+    """
+    sub_agg = df.groupby("_std_sub_category", as_index=False)["_std_profit"].sum()
+    sub_agg = sub_agg.sort_values("_std_profit", ascending=True)
+
+    colors = [CLR_RED if p < 0 else CLR_TEAL for p in sub_agg["_std_profit"]]
+
+    fig = go.Figure(go.Bar(
+        y=sub_agg["_std_sub_category"],
+        x=sub_agg["_std_profit"],
+        orientation="h",
+        marker_color=colors,
+        hovertemplate="<b>%{y}</b><br>Profit: ₹%{x:,.2f}<extra></extra>"
+    ))
+
+    _clean_chart_layout(fig, title="Profit by sub-category", height=380)
+    fig.add_vline(x=0, line_width=1, line_color="#94A3B8")
+    fig.update_layout(yaxis_title=None, showlegend=False)
+    fig.update_xaxes(tickprefix="₹", tickformat="~s")
+    return fig
+
+
+def plot_regional_profit_margins(df: pd.DataFrame) -> go.Figure:
+    """
+    Regional profit margins (%) with overall benchmark line.
+    Exact match to reference bottom-right chart.
+    """
+    reg_agg = df.groupby("_std_region", as_index=False).agg({
+        "_std_sales": "sum",
+        "_std_profit": "sum"
+    })
+    reg_agg["Margin_Pct"] = (reg_agg["_std_profit"] / reg_agg["_std_sales"] * 100).round(2)
+    reg_agg = reg_agg.sort_values("Margin_Pct", ascending=False)
+
+    overall_margin = (df["_std_profit"].sum() / df["_std_sales"].sum() * 100) if df["_std_sales"].sum() > 0 else 0
+
+    fig = go.Figure()
+    
+    # Regional margin bars
+    fig.add_trace(go.Bar(
+        x=reg_agg["_std_region"],
+        y=reg_agg["Margin_Pct"],
+        name="Region Margin",
+        marker_color=CLR_BLUE,
+        hovertemplate="<b>%{x}</b>: %{y:.2f}%<extra></extra>"
+    ))
+
+    # Overall benchmark line
+    fig.add_hline(
+        y=overall_margin,
+        line_dash="dash",
+        line_color=CLR_RED,
+        annotation_text=f"Overall margin ({overall_margin:.2f}%)",
+        annotation_position="top right"
     )
-    fig.add_hline(y=0, line_dash="dash", line_color=PALETTE["negative"], annotation_text="Breakeven (0% Margin)")
-    _apply_standard_layout(fig, title="Profitability Matrix: Sales vs Profit Margin %")
-    fig.update_traces(textposition='top center')
+
+    _clean_chart_layout(fig, title="Regional profit margins (%)", height=380)
+    fig.update_layout(xaxis_title=None, yaxis_title="Margin (%)", showlegend=False)
+    fig.update_yaxes(ticksuffix="%")
+    return fig
+
+
+def plot_top_products_bar(df: pd.DataFrame, metric: str = "Sales", n: int = 10) -> go.Figure:
+    """Horizontal bar chart for top 10 products by Sales or Profit."""
+    col = "_std_sales" if metric == "Sales" else "_std_profit"
+    top_p = df.groupby("_std_product_name", as_index=False)[col].sum().sort_values(col, ascending=False).head(n)
+    top_p = top_p.sort_values(col, ascending=True)
+
+    color = CLR_BLUE if metric == "Sales" else CLR_TEAL
+
+    fig = go.Figure(go.Bar(
+        y=top_p["_std_product_name"].str.slice(0, 30) + "...",
+        x=top_p[col],
+        orientation="h",
+        marker_color=color,
+        hovertemplate=f"<b>%{{y}}</b><br>{metric}: ₹%{{x:,.2f}}<extra></extra>"
+    ))
+    _clean_chart_layout(fig, title=f"Top {n} Products by {metric}", height=340)
+    fig.update_layout(yaxis_title=None, showlegend=False)
+    fig.update_xaxes(tickprefix="₹", tickformat="~s")
+    return fig
+
+
+def plot_customer_segment_donut(df: pd.DataFrame) -> go.Figure:
+    """Customer segment sales share donut chart."""
+    seg_agg = df.groupby("_std_segment", as_index=False)["_std_sales"].sum()
+    
+    fig = go.Figure(go.Pie(
+        labels=seg_agg["_std_segment"],
+        values=seg_agg["_std_sales"],
+        hole=0.6,
+        marker=dict(colors=[CLR_BLUE, CLR_TEAL, "#F59E0B"]),
+        textinfo="label+percent",
+        hovertemplate="<b>%{label}</b><br>Sales: ₹%{value:,.2f}<br>Share: %{percent}<extra></extra>"
+    ))
+    _clean_chart_layout(fig, title="Sales by Customer Segment", height=340)
+    fig.update_layout(showlegend=True)
     return fig

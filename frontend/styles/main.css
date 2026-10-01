@@ -1,155 +1,282 @@
 /*
 frontend/styles/main.css
-Clean, minimal, executive styling for Sales Performance Dashboard.
+Premium, high-end SaaS analytics design inspired by executive sales dashboards.
+Clean, modern, minimal, high-contrast, Indian Rupee (₹) optimized.
 */
 
 :root {
-  --primary: #2563EB;
-  --primary-hover: #1D4ED8;
+  --primary: #1E3A8A;
+  --primary-blue: #2563EB;
   --secondary: #0F172A;
+  --teal-green: #0D9488;
+  --accent-green: #10B981;
+  --accent-red: #DC2626;
+  --accent-orange: #F59E0B;
   --text-main: #1E293B;
   --text-muted: #64748B;
   --bg-page: #F8FAFC;
   --card-bg: #FFFFFF;
   --card-border: #E2E8F0;
-  --success: #10B981;
-  --success-bg: #ECFDF5;
-  --warning: #F59E0B;
-  --warning-bg: #FFFBEB;
-  --danger: #EF4444;
-  --danger-bg: #FEF2F2;
-  --radius: 8px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
 }
 
-/* Page container */
+/* Overall page layout */
 .main .block-container {
-  padding-top: 1.5rem !important;
-  padding-bottom: 2rem !important;
+  padding-top: 1.2rem !important;
+  padding-bottom: 2.5rem !important;
   max-width: 98% !important;
 }
 
-/* Dashboard Header */
-.dashboard-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.8rem;
+/* Executive Header */
+.dash-header-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  margin-bottom: 1.2rem;
   border-bottom: 1px solid var(--card-border);
 }
 
-.dashboard-title {
-  font-size: 1.75rem;
-  font-weight: 700;
+.dash-header-title {
+  font-size: 1.85rem;
+  font-weight: 800;
   color: var(--secondary);
+  letter-spacing: -0.025em;
   margin: 0;
-  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-.dashboard-subtitle {
+.dash-header-subtitle {
   font-size: 0.95rem;
   color: var(--text-muted);
-  margin-top: 0.25rem;
+  margin-top: 0.3rem;
+  font-weight: 400;
 }
 
-/* KPI Card */
-.kpi-container {
+.dash-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.dash-badge-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-green);
+  border-radius: 50%;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 1.1rem 1.25rem;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.kpi-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+.kpi-card:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: #CBD5E1;
+}
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary-blue);
+}
+
+.kpi-card.green::before { background: var(--accent-green); }
+.kpi-card.teal::before { background: var(--teal-green); }
+.kpi-card.red::before { background: var(--accent-red); }
+.kpi-card.orange::before { background: var(--accent-orange); }
+
+.kpi-title {
+  font-size: 0.78rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .kpi-value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.7rem;
+  font-weight: 800;
   color: var(--secondary);
   letter-spacing: -0.02em;
-  margin: 0;
+  line-height: 1.15;
 }
 
-.kpi-sub {
+.kpi-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0.5rem;
   font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 0.4rem;
 }
 
-/* Insight Card */
-.insight-card {
+.kpi-pill {
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.74rem;
+}
+
+.kpi-pill.positive {
+  background: #ECFDF5;
+  color: #065F46;
+}
+
+.kpi-pill.negative {
+  background: #FEF2F2;
+  color: #991B1B;
+}
+
+/* Chart Container Cards */
+.chart-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-left: 4px solid var(--primary);
-  border-radius: var(--radius);
-  padding: 1rem 1.2rem;
-  box-shadow: var(--shadow);
-  margin-bottom: 0.5rem;
-  height: 100%;
+  border-radius: var(--radius-md);
+  padding: 1.2rem;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 1.2rem;
 }
 
-.insight-card-title {
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.chart-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--secondary);
+  letter-spacing: -0.01em;
+}
+
+.chart-card-subtitle {
   font-size: 0.8rem;
-  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Key Insights Cards */
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 0.8rem;
+}
+
+.insight-box {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid var(--primary-blue);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+  box-shadow: var(--shadow-card);
+}
+
+.insight-box.green { border-left-color: var(--accent-green); }
+.insight-box.orange { border-left-color: var(--accent-orange); }
+.insight-box.red { border-left-color: var(--accent-red); }
+
+.insight-tag {
+  font-size: 0.74rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--primary);
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.insight-headline {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--secondary);
   margin-bottom: 0.25rem;
 }
 
-.insight-card-text {
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: var(--text-main);
+.insight-desc {
+  font-size: 0.84rem;
+  color: #334155;
   line-height: 1.4;
   margin: 0;
 }
 
-/* Data Quality Card */
-.metric-box {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 1.2rem;
-  box-shadow: var(--shadow);
-  text-align: center;
+/* Pipeline Status Box in Sidebar */
+.pipeline-status-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  margin: 0.6rem 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #334155;
 }
 
-.metric-box-val {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--secondary);
-}
-
-.metric-box-lbl {
-  font-size: 0.82rem;
+.pipeline-check {
+  color: #059669;
   font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-top: 0.25rem;
 }
 
-/* Sidebar styling */
+/* Chat Prompt Chips */
+.chip-btn {
+  display: inline-block;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: #1E293B;
+  margin: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip-btn:hover {
+  background: #E2E8F0;
+  border-color: #94A3B8;
+}
+
+/* Sidebar Styling */
 [data-testid="stSidebar"] {
-  background-color: #FFFFFF;
-  border-right: 1px solid var(--card-border);
+  background-color: #FFFFFF !important;
+  border-right: 1px solid var(--card-border) !important;
 }
 
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2,
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 {
-  color: var(--secondary);
-  font-size: 1rem;
-  font-weight: 600;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+[data-testid="stSidebar"] hr {
+  margin: 0.8rem 0 !important;
+  border-color: #E2E8F0 !important;
 }
