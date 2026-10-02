@@ -145,7 +145,7 @@ def _safe_parse_dates(series: pd.Series) -> pd.Series:
     has_high_first_token = False
     for s in sample:
         parts = s.split("-") if "-" in s else s.split("/")
-        if len(parts) >= 2 and parts[0].isdigit() and int(parts[0]) > 12:
+        if len(parts) >= 2 and parts[0].isdigit() and len(parts[0]) <= 2 and int(parts[0]) > 12:
             has_high_first_token = True
             break
             
@@ -184,12 +184,16 @@ def clean_and_normalize_data(df: pd.DataFrame, mapping: Dict[str, Any]) -> Tuple
             if canonical_key == "order_date":
                 exclusions["unparsable_date_rows"] = int(parsed.isna().sum() - clean_df[src_col].isna().sum())
 
-        elif canonical_key in ["sales", "profit"]:
-            # Clean string symbols like $, commas
-            s = clean_df[src_col].astype(str).str.replace(r'[\$,\s]', '', regex=True)
+        elif canonical_key in ["sales", "profit", "discount"]:
+            # Clean string symbols like $, commas, percent signs
+            s = clean_df[src_col].astype(str).str.replace(r'[\$,\s%]', '', regex=True)
             # Replace placeholder representations with NaN
             s = s.replace(["#N/A", "N/A", "nan", "None", ""], np.nan)
             num = pd.to_numeric(s, errors="coerce")
+            if canonical_key == "discount":
+                # Convert 10 (percent) to 0.10; leave 0-1 fractions unchanged
+                if num.dropna().gt(1).any() and not num.dropna().gt(100).any():
+                    num = num / 100.0
             clean_df[std_col] = num
             if canonical_key == "sales":
                 exclusions["unparsable_sales_rows"] = int(num.isna().sum() - clean_df[src_col].isna().sum())

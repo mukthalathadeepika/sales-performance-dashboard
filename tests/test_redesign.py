@@ -41,16 +41,21 @@ class TestDashboardRedesign(unittest.TestCase):
         self.assertGreaterEqual(len(self.res["pipeline_steps"]), 5)
 
     def test_02_inr_formatting(self):
-        """Verify Indian Rupee (₹) formatting."""
-        formatted_sales = format_inr(1565804.32, compact=True)
-        self.assertTrue(formatted_sales.startswith("₹"))
-        self.assertIn("15.66 L", formatted_sales)
+        """Verify Indian Rupee (₹) formatting with and without FX conversion."""
+        raw = format_inr(1565804.32, compact=True, convert=False)
+        self.assertTrue(raw.startswith("₹"))
+        self.assertIn("15.66 L", raw)
+        self.assertNotIn("$", raw)
 
-        formatted_profit = format_inr(175262.11, compact=True)
-        self.assertTrue(formatted_profit.startswith("₹"))
+        converted = format_inr(1565804.32, compact=True, convert=True)
+        self.assertTrue(converted.startswith("₹"))
+        self.assertNotIn("$", converted)
+        self.assertIn("Cr", converted)
+
+        formatted_profit = format_inr(175262.11, compact=True, convert=False)
         self.assertIn("1.75 L", formatted_profit)
 
-        formatted_negative = format_inr(-10500.50, compact=False)
+        formatted_negative = format_inr(-10500.50, compact=False, convert=False)
         self.assertTrue(formatted_negative.startswith("-₹"))
 
     def test_03_charts_generation(self):
@@ -79,7 +84,7 @@ class TestDashboardRedesign(unittest.TestCase):
         r1 = process_query("What is the total sales?", self.df)
         self.assertIn("₹", r1["answer_text"])
         self.assertNotIn("$", r1["answer_text"])
-        self.assertIn("1,565,804.32", r1["answer_text"])
+        self.assertIn(format_inr(1565804.32), r1["answer_text"])
 
         # 2. Region with highest sales
         r2 = process_query("Which region has the highest sales?", self.df)
@@ -100,6 +105,46 @@ class TestDashboardRedesign(unittest.TestCase):
         r5 = process_query("Which products are causing losses?", self.df)
         self.assertIn("₹", r5["answer_text"])
         self.assertIsNotNone(r5["chart_data"])
+
+    def test_05_shipping_analytics(self):
+        """Verify shipping analytics calculates mode breakdown and average transit days."""
+        from backend.analytics.shipping import get_shipping_summary
+        summary = get_shipping_summary(self.df)
+        self.assertIsNotNone(summary["avg_days"])
+        self.assertGreater(summary["avg_days"], 0)
+        self.assertFalse(summary["mode_breakdown"].empty)
+        self.assertIn("Ship Mode", summary["mode_breakdown"].columns)
+
+    def test_06_entity_period_comparison_and_trends(self):
+        """Verify natural language comparisons with entities and years."""
+        # 1. Compare Technology sales in 2019 and 2020
+        r1 = process_query("Compare Technology sales in 2019 and 2020", self.df)
+        self.assertIn("Technology", r1["answer_text"])
+        self.assertIn("2019", r1["answer_text"])
+        self.assertIn("2020", r1["answer_text"])
+        self.assertIsNotNone(r1["chart_data"])
+
+        # 2. Performance trend for entity
+        r2 = process_query("What happened to sales in West?", self.df)
+        self.assertIn("West", r2["answer_text"])
+        self.assertIn("₹", r2["answer_text"])
+
+    def test_07_coverage_limitation_and_word_boundaries(self):
+        """Verify out-of-scope query handling and word-boundary state matching."""
+        # Unrelated domain metric
+        r1 = process_query("What is our employee attrition rate?", self.df)
+        self.assertTrue(r1["is_unsupported"] or "out-of-scope" in r1["answer_text"].lower() or "coverage limitation" in r1["answer_text"].lower())
+
+        # India should NOT match Indiana as a state entity
+        r2 = process_query("What are the total sales in India?", self.df)
+        self.assertTrue(r2["is_unsupported"] or "coverage limitation" in r2["answer_text"].lower() or "not contain" in r2["answer_text"].lower() or "outside" in r2["answer_text"].lower())
+
+    def test_08_metric_precision(self):
+        """Verify total sales calculation matches exact rounded sum."""
+        total_sum = round(float(self.df["_std_sales"].sum()), 2)
+        expected_str = format_inr(total_sum)
+        r = process_query("What is the total sales?", self.df)
+        self.assertIn(expected_str, r["answer_text"])
 
 
 if __name__ == "__main__":

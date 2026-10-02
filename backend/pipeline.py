@@ -59,23 +59,20 @@ def run_full_pipeline(
         }
 
     actual_name = file_name or (file_source if isinstance(file_source, str) else "uploaded_file.csv")
-    steps_log.append(f"✓ File '{actual_name}' loaded successfully")
-    steps_log.append(f"✓ {row_count:,} rows and {col_count} columns detected")
+    steps_log.append("✓ File loaded")
+    steps_log.append("✓ Columns detected")
 
-    # Step 3: Column Detection and Mapping
     mapping = auto_detect_columns(raw_df)
     mapped_count = sum(1 for m in mapping.values() if m.get("column") is not None)
-    steps_log.append(f"✓ {mapped_count} semantic sales columns mapped")
+    steps_log.append(f"✓ {mapped_count} semantic fields mapped")
 
-    # Step 4, 5, 6, 7, 8: Cleaning, Missing values, Types, Dates, Numeric validation
     clean_df, exclusions = clean_and_normalize_data(raw_df, mapping)
-    steps_log.append("✓ Data types, dates (DD-MM-YYYY), and numeric values normalized")
-    steps_log.append("✓ Negative profits and loss-making transactions preserved")
+    steps_log.append("✓ Dates processed")
+    steps_log.append("✓ Numeric fields processed")
+    steps_log.append("✓ Dataset analyzed")
 
-    # Step 9 & 10: Duplicate Check and Quality Audit
     audit = run_data_quality_audit(raw_df, mapping)
-    steps_log.append(f"✓ Quality verified: {audit['exact_duplicates']} duplicate rows, {audit['distinct_orders'] or 'N/A'} distinct orders")
-    steps_log.append("✓ Dataset ready for analytics")
+    steps_log.append("✓ Dashboard ready")
 
     # Step 11: Analytics Calculations
     kpis = calculate_kpis(clean_df)

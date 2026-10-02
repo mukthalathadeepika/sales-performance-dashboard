@@ -7,6 +7,7 @@ Supports privacy masking for customer names per PRD Section 5.4.
 import io
 from typing import Dict, Any, Optional
 import pandas as pd
+from backend.analytics.currency import format_inr, convert_to_inr
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -40,11 +41,11 @@ def export_to_excel(
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         # Sheet 1: Executive KPI Summary
         kpi_rows = [
-            {"Metric": "Total Sales", "Value": kpis.get("total_sales", 0)},
-            {"Metric": "Total Profit", "Value": kpis.get("total_profit", 0)},
+            {"Metric": "Total Sales (INR)", "Value": convert_to_inr(kpis.get("total_sales", 0) or 0)},
+            {"Metric": "Total Profit (INR)", "Value": convert_to_inr(kpis.get("total_profit", 0) or 0)},
             {"Metric": "Total Orders (Distinct)", "Value": kpis.get("total_orders", 0)},
             {"Metric": "Total Quantity", "Value": kpis.get("total_quantity", 0)},
-            {"Metric": "Average Order Value (AOV)", "Value": kpis.get("aov", 0)},
+            {"Metric": "Average Order Value INR", "Value": convert_to_inr(kpis.get("aov", 0) or 0)},
             {"Metric": "Profit Margin (%)", "Value": kpis.get("profit_margin_pct", 0)},
         ]
         pd.DataFrame(kpi_rows).to_excel(writer, sheet_name="Executive Summary", index=False)
@@ -77,7 +78,9 @@ def generate_executive_pdf(
     date_range_str: str,
     cat_df: Optional[pd.DataFrame] = None,
     state_df: Optional[pd.DataFrame] = None,
-    currency_symbol: str = "$"
+    currency_symbol: str = "₹",
+    dataset_name: str = "",
+    filters_summary: str = "",
 ) -> bytes:
     """Generates a professional 1-page executive briefing PDF using ReportLab."""
     buffer = io.BytesIO()
@@ -127,18 +130,21 @@ def generate_executive_pdf(
 
     # Title & Metadata
     story.append(Paragraph("Sales Performance Executive Report", title_style))
-    story.append(Paragraph(f"Reporting Scope: {date_range_str} | Generated via Sales Performance Dashboard", subtitle_style))
+    meta = f"Reporting Scope: {date_range_str}"
+    if dataset_name:
+        meta += f" | Dataset: {dataset_name}"
+    if filters_summary:
+        meta += f" | Filters: {filters_summary}"
+    story.append(Paragraph(meta + " | Generated via Sales Analytics Platform", subtitle_style))
     story.append(Spacer(1, 10))
 
-    # KPI Table Grid
-    sym = currency_symbol
     kpi_data = [
         ["Total Revenue", "Total Profit", "Distinct Orders", "Profit Margin"],
         [
-            f"{sym}{kpis.get('total_sales', 0):,.2f}",
-            f"{sym}{kpis.get('total_profit', 0):,.2f}",
+            format_inr(kpis.get("total_sales", 0)),
+            format_inr(kpis.get("total_profit", 0) or 0),
             f"{kpis.get('total_orders', 0):,}",
-            f"{kpis.get('profit_margin_pct', 0):.1f}%"
+            f"{(kpis.get('profit_margin_pct') or 0):.1f}%"
         ]
     ]
     t = Table(kpi_data, colWidths=[130, 130, 130, 130])
@@ -174,8 +180,8 @@ def generate_executive_pdf(
         for _, row in cat_df.head(5).iterrows():
             cat_table_data.append([
                 str(row.get("Category", "")),
-                f"{sym}{row.get('Sales', 0):,.2f}",
-                f"{sym}{row.get('Profit', 0):,.2f}",
+                format_inr(row.get("Sales", 0)),
+                format_inr(row.get("Profit", 0)),
                 f"{row.get('Profit Margin %', 0):.1f}%"
             ])
         ct = Table(cat_table_data, colWidths=[180, 110, 110, 120])

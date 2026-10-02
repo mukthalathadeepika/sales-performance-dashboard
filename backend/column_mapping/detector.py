@@ -130,6 +130,24 @@ CANONICAL_FIELDS = {
         "required": False,
         "keywords": ["payment mode", "payment method", "payment type", "pay mode"],
     },
+    "discount": {
+        "label": "Discount",
+        "description": "Discount rate or amount applied to the line",
+        "required": False,
+        "keywords": ["discount", "discount rate", "disc", "markdown", "discount %", "discount_pct"],
+    },
+    "postal_code": {
+        "label": "Postal Code",
+        "description": "Postal or ZIP code",
+        "required": False,
+        "keywords": ["postal code", "postal", "zip", "zip code", "zipcode", "postcode"],
+    },
+    "salesperson": {
+        "label": "Salesperson",
+        "description": "Sales representative or owner",
+        "required": False,
+        "keywords": ["salesperson", "sales person", "sales rep", "representative", "owner", "account manager"],
+    },
 }
 
 

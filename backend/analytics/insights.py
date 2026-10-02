@@ -7,6 +7,7 @@ without speculative claims, adhering to PRD Section 5.3.
 from typing import Dict, Any, List
 import pandas as pd
 import numpy as np
+from backend.analytics.currency import format_inr
 
 
 def generate_executive_insights(df: pd.DataFrame) -> Dict[str, Any]:
@@ -41,7 +42,7 @@ def generate_executive_insights(df: pd.DataFrame) -> Dict[str, Any]:
             "type": "positive",
             "category": "Category Leadership",
             "title": f"Top Category: {top_cat}",
-            "text": f"Generates {top_cat_sales:,.2f} in sales, representing {top_cat_share:.1f}% of overall revenue."
+            "text": f"Generates {format_inr(top_cat_sales)} in sales, representing {top_cat_share:.1f}% of overall revenue."
         })
         summary_bullets.append(f"**{top_cat}** is the largest revenue category ({top_cat_share:.1f}% share).")
 
@@ -57,7 +58,7 @@ def generate_executive_insights(df: pd.DataFrame) -> Dict[str, Any]:
             "type": "info",
             "category": "Sub-Category Performance",
             "title": f"Highest Profit Driver: {best_sub}",
-            "text": f"Contributed {best_sub_prof:,.2f} in net profit."
+            "text": f"Contributed {format_inr(best_sub_prof)} in net profit."
         })
 
         if worst_sub_prof < 0:
@@ -65,9 +66,9 @@ def generate_executive_insights(df: pd.DataFrame) -> Dict[str, Any]:
                 "type": "warning",
                 "category": "Profit Drain Warning",
                 "title": f"Loss-Making Sub-Category: {worst_sub}",
-                "text": f"Accumulated a net loss of {abs(worst_sub_prof):,.2f}."
+                "text": f"Accumulated a net loss of {format_inr(abs(worst_sub_prof))}."
             })
-            summary_bullets.append(f"Sub-category **{worst_sub}** generated an aggregate loss of {abs(worst_sub_prof):,.2f}.")
+            summary_bullets.append(f"Sub-category **{worst_sub}** generated an aggregate loss of {format_inr(abs(worst_sub_prof))}.")
 
     # 3. Geographic Highlights
     if has_state and has_sales:
@@ -78,9 +79,9 @@ def generate_executive_insights(df: pd.DataFrame) -> Dict[str, Any]:
             "type": "positive",
             "category": "Geographic Leader",
             "title": f"Top Performing State: {top_state}",
-            "text": f"Leads all states with {top_state_sales:,.2f} in total sales."
+            "text": f"Leads all states with {format_inr(top_state_sales)} in total sales."
         })
-        summary_bullets.append(f"State leader is **{top_state}** with {top_state_sales:,.2f} in sales.")
+        summary_bullets.append(f"State leader is **{top_state}** with {format_inr(top_state_sales)} in sales.")
 
     # 4. Regional Profit Margins
     if has_region and has_sales and has_profit:
@@ -130,7 +131,7 @@ def generate_executive_insights(df: pd.DataFrame) -> Dict[str, Any]:
                 "type": "positive" if growth >= 0 else "warning",
                 "category": "Annual Growth",
                 "title": f"YoY Revenue Change ({y1} to {y2})",
-                "text": f"Sales grew from {s1:,.2f} to {s2:,.2f} ({growth:+.1f}%)."
+                "text": f"Sales grew from {format_inr(s1)} to {format_inr(s2)} ({growth:+.1f}%)."
             })
             summary_bullets.append(f"Revenue changed by **{growth:+.1f}%** between {y1} and {y2}.")
 

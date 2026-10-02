@@ -1,0 +1,240 @@
+TITLE Streamlit
+SIDEBAR_TEXT 📈 Sales Performance
+
+📊 Dashboard
+
+🔎 Sales Analysis
+
+🤖 AI Sales Assistant
+
+📁 Dataset
+
+Current dataset: SuperStore_Sales_Dataset.csv
+
+5,901 rows · Jan 2019 – Dec 2020
+
+Clear Current Dataset
+
+Upload New Dataset
+
+upload
+
+Upload
+
+50MB per file • CSV, XLSX, XLS, TSV
+keyboard_arrow_right
+
+Pipeline Status
+
+keyboard_arrow_right
+
+Currency Settings
+
+keyboard_arrow_down
+
+Filters
+
+Date Range
+
+2019
+/
+01
+/
+01
+–
+2020
+/
+12
+/
+31
+
+Year
+
+Quarter
+
+Month
+
+Region
+
+Country
+
+State
+
+Category
+
+Sub-Category
+
+Segment
+
+Ship Mode
+
+Payment Method
+
+Reset All Filters
+DEPLOY 0
+BODY_BG rgb(11, 20, 38)
+MAIN_TEXT Sales Performance Dashboard
+Monitor sales, profitability and business performance across your active dataset.
+Active Dataset: SuperStore_Sales_Dataset.csv · Rows: 5,901 · Jan 01, 2019 – Dec 31, 2020
+
+KPI comparison
+
+Total Sales
+₹13.07 Cr
+↑ 76.2% vs previous period
+Total Profit
+₹1.46 Cr
+↑ 14.7% vs previous period
+Total Orders
+3,003
+↑ 27.7% vs previous period
+Profit Margin
+11.2%
+↓ 34.9% vs previous period
+Average Order Value
+₹43.5 K
+3,003 orders
+Total Units Sold
+22,317
+↑ 25.6% vs previous period
+keyboard_arrow_right
+
+Chart customization
+
+Jan 2019
+Jul 2019
+Jan 2020
+Jul 2020
+Jan 2021
+0
+2M
+4M
+6M
+8M
+10M
+12M
+14M
+Sales
+Profit
+Monthly Sales & Profit Trend
+0
+20M
+40M
+Furniture
+Technology
+Office Supplies
+Sales
+Profit
+Sales vs Profit by Category
+−1M
+0
+1M
+2M
+3M
+Tables
+Supplies
+Bookcases
+Machines
+Fasteners
+Labels
+Envelopes
+Art
+Furnishings
+Appliances
+Chairs
+Storage
+Binders
+Paper
+Phones
+Accessories
+Copiers
+Profit by Sub-Category
+West
+East
+South
+Central
+0%
+2%
+4%
+6%
+8%
+10%
+12%
+Regional Profit Margin
+Avg: 11.2%
+
+Product metric
+
+0
+0.5M
+1M
+Fellowes PB500 Electric Punch 
+Global Troy Executive Leather 
+HON 5400 Series Task Chairs fo
+Martin Yale Chadless Opener El
+Samsung Galaxy Mega 6.3
+GBC DocuBind P400 Electric Bin
+GBC DocuBind TL300 Electric Bi
+Hewlett Packard LaserJet 3310 
+Canon imageCLASS 2200 Advanced
+3D Systems Cube Printer, 2nd G
+Top 10 Products by Sales
+Consumer48.1%
+Corporate32.6%
+Home Office19.4%
+Consumer
+Corporate
+Home Office
+Customer Segment Distribution
+Geographic Map
+
+Map metric
+
+5M
+10M
+15M
+20M
+25M
+Sales
+Sales by State
+Top & Bottom Performers
+
+Dimension
+
+Metric
+
+Count
+
+Top 5
+
+3D Systems Cube Printer, 2nd Generation, Magenta — ₹11.97 L
+
+Canon imageCLASS 2200 Advanced Copier — ₹11.75 L
+
+Hewlett Packard LaserJet 3310 Copier — ₹11.55 L
+
+GBC DocuBind TL300 Electric Binding System — ₹10.76 L
+
+GBC DocuBind P400 Electric Binding System — ₹10.50 L
+
+Bottom 5
+
+Avery 479 — ₹217.94
+
+Newell 32 — ₹240.48
+
+Eldon 100 Class Desk Accessories — ₹337.67
+
+While You Were Out Pads, 50 per Pad, 4 x 5 1/4, Green Cycle — ₹394.96
+
+Wilson Jones Custom Binder Spines & Labels — ₹408.82
+
+Loss & Risk Detection
+Cubify CubeX 3D Printer Double Head Print generated a loss of ₹5.21 L.
+Cubify CubeX 3D Printer Triple Head Print generated a loss of ₹3.21 L.
+Lexmark MX611dhe Monochrome Laser Printer generated a loss of ₹2.27 L.
+Tables generated a loss of ₹9.26 L.
+Supplies generated a loss of ₹1.38 L.
+Bookcases generated a loss of ₹28.6 K.
+Martin Yale Chadless Opener Electric Letter Opener has high sales (
+EXCEPTIONS 0

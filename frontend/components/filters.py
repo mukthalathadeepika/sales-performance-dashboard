@@ -25,7 +25,7 @@ def render_sidebar_controls(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, A
         st.rerun()
 
     active_meta = {
-        "currency_symbol": "$",
+        "currency_symbol": "₹",
         "sales_target": None,
         "date_range": None,
         "selected_regions": [],
@@ -39,7 +39,7 @@ def render_sidebar_controls(df: pd.DataFrame) -> Tuple[pd.DataFrame, Dict[str, A
     # 2. Currency Selector (PRD Section 6.1)
     currency = st.sidebar.selectbox(
         "Currency Display",
-        options=["$", "€", "£", "₹", "¥", "None"],
+        options=["₹"],
         index=0,
         key="filter_currency"
     )

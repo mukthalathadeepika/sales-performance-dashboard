@@ -1,88 +1,76 @@
 # Sales Performance Dashboard MVP
 
-A business analytics web application built with **Python**, **Streamlit**, **Pandas**, and **Plotly** to inspect, visualize, compare, and query sales data.
+A business analytics and intelligence web application built with **Python**, **Streamlit**, **Pandas**, and **Plotly** to inspect, visualize, compare, and query sales data.
 
-Built in strict adherence to the [Product Requirements Document (PRD)](./Sales_Performance_Dashboard_PRD.pdf) and verified against the reference **SuperStore Sales Dataset** (5,901 records, 2019–2020).
+Built in strict adherence to business intelligence standards and validated against the reference **SuperStore Sales Dataset** (5,901 records, 2019–2020).
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Application Pages
 
-### 1. Home / Landing Page
-- Introduces the platform in a few clear lines.
-- Four interactive option cards matching PRD Section 2.1:
-  - **Explore the Dashboard**: Inspect interactive charts, KPI cards, and dynamic filters.
-  - **Build an Analysis**: Custom query builder to choose measure, dimension, ranking, and chart format.
-  - **Automatic Overview**: Executive narrative briefing, key performance drivers, and PDF report export.
-  - **Ask in Chat**: Plain-language sales questions answered deterministically and visualized on screen.
-- Quick preview button to load the reference dataset with 1 click.
+The application is structured into **three focused, production-ready primary pages** accessible from the sidebar navigation:
 
-### 2. Executive Performance Dashboard
-- **Core KPI Cards**:
-  - **Total Sales / Revenue**
-  - **Total Net Profit** (includes negative profits / loss-making lines)
-  - **Total Orders (Distinct)** (distinct count of Order IDs across lines)
-  - **Total Quantity Sold**
-  - **Total Unique Customers**
-  - **Average Order Value (AOV)**: $\text{Total Sales} / \text{Distinct Orders}$
-  - **Profit Margin %**: $\text{Total Profit} / \text{Total Sales} \times 100$
-  - **Sales Target Achievement %** with interactive target setter
-- **Interactive Multi-Level Filters**:
-  - Order Date range slider / picker
-  - Region, Category, Sub-Category (cascaded), Customer Segment, and State filters
-  - Currency display selector (`$`, `€`, `£`, `₹`, `¥`, or unadorned numeric values)
-  - **Reset All Filters** one-click button restoring full dataset
+### 1. 📊 Executive Dashboard
+- **Executive KPI Cards**:
+  - **Total Sales / Revenue** (formatted in Indian Rupees `₹` with compact notation `L` / `Cr`)
+  - **Total Net Profit** (accurately accounting for negative profit & loss-making items)
+  - **Total Orders (Distinct)** (distinct count of Order IDs across line items)
+  - **Total Quantity Sold** (units)
+  - **Profit Margin %** ($\text{Total Profit} / \text{Total Sales} \times 100$)
+  - **Average Order Value (AOV)** ($\text{Total Sales} / \text{Distinct Orders}$)
 - **Visual Analytics Suite (Plotly)**:
-  - **Monthly Sales & Profit Combo Chart** (Bar + Line with dual y-axis) & Cumulative Sales curve
-  - **Top & Bottom Products Ranking** (selectable $N=5, 10, 15, 20$; Sales, Profit, Quantity) with Chart/Table switch
-  - **Category & Sub-Category Treemap** (sized by Sales, colored by Margin %) & Profitability Matrix
-  - **Geographic US State Map** & Hierarchical Drill-Down (Region → State → City)
-  - **Customer Segment Distribution Donut Chart**
-  - **Fulfillment Transit Duration** (Ship Date minus Order Date) by Ship Mode
-  - **Returns Analysis** with visible coverage limitation notice
-  - **Data Exports**: Download filtered data as CSV or multi-sheet Excel workbook
+  - **Monthly Sales & Profit Combo Chart**: Monthly sales bars and net profit line with dual-axis visualization, cumulative trend curves, and 1-click PNG export.
+  - **Category & Sub-Category Performance**: Multi-metric breakdown comparing Sales, Profit, and Quantity across product hierarchies.
+  - **Regional Performance**: Grouped bar charts showing regional revenue and profit distribution.
+  - **Top & Bottom Products Ranking**: Configurable ranking ($N=5, 10, 20$ for Top; $N=5, 10$ for Bottom) across Sales, Profit, and Quantity with interactive chart and tabular views.
+  - **Geographic Visualizations**: Interactive US State Choropleth map, regional drill-down, and top city breakdown.
+  - **Shipping & Fulfillment Analytics**: Average transit duration (Ship Date minus Order Date) and order distribution across shipping modes.
+- **Executive Data Exports**: One-click downloads for filtered datasets in **CSV**, multi-sheet **Excel (.xlsx)**, and executive **PDF briefings**.
 
-### 3. Guided Analysis Builder
-- Searchable query builder allowing users to choose:
-  - **Measure**: Sales, Profit, Quantity, Distinct Orders
-  - **Dimension Grouping**: Category, Sub-Category, Region, State, City, Segment, Ship Mode, Product
-  - **Ranking / Limit**: Top 5, Top 10, Top 20, Bottom 5, Bottom 10, All Items
-  - **Visual Format**: Bar Chart, Line Chart, Donut Chart, Treemap, or Data Table
-- Direct export of the customized data slice.
+### 2. 🔎 Sales Analysis
+- **Custom Multidimensional Deep-Dive**:
+  - Group sales, profit, quantity, or distinct orders by Category, Sub-Category, Region, State, City, Segment, Ship Mode, or Product.
+  - Interactive chart formats: Grouped Bar, Horizontal Bar, Line Chart, Pie/Donut Chart, Treemap, or Data Table.
+  - Flexible time aggregations: Monthly, Quarterly, Yearly, or Daily grains.
+- **Unified Period Comparison Engine**:
+  - Compare any grouped dimension across **Year vs Year**, **Month vs Month**, **Quarter vs Quarter**, or **Custom Date Ranges**.
+  - Detailed variance reporting displaying Baseline Value, Comparison Value, Absolute Difference, and Percentage Change ($\pm\%$).
+  - One-click export of comparison tables in both **CSV** and **Excel (.xlsx)** formats.
 
-### 4. Automatic Overview & Executive Insights
-- Deterministic, data-grounded executive narrative (no hallucinated AI assumptions).
-- Highlights top-performing categories, margin leaders, and loss-making items.
-- Transaction Anomaly detection flagging top 0.5% high-value orders and significant losses.
-- **Executive PDF Report Export**: One-click download of a professional briefing PDF generated via ReportLab with customer-name masking options.
-
-### 5. Natural Language Sales Chat Assistant
-- Natural language query processor using pure deterministic Pandas calculations (no paid external AI API required).
-- Supported query types:
-  - Total sales, profit, distinct orders, AOV, profit margin
-  - Best / top / highest category, sub-category, product, region, state
-  - Year-over-year comparisons (e.g. 2019 vs 2020)
-  - Customer segment distribution
-- Explicit coverage disclosures (out-of-scope locations like India or categories like Toys are clearly identified without fabricating data).
-- Renders requested charts directly on the main canvas accompanied by data tables and context tags.
-
-### 6. Data Quality Audit & Semantic Mapping
-- Non-destructive data ingestion supporting CSV, Excel (.xlsx), and TSV files.
-- Automated column mapping with confidence scoring and manual override dropdowns.
-- Detailed quality health check:
-  - Total input rows and distinct order IDs
-  - Exact duplicate row detection vs repeated order IDs
-  - Missing value counts and placeholder (`#N/A`, `null`, `none`) audit
-  - Automatic date format handling (`DD-MM-YYYY`, `dayfirst=True`)
-  - Detection of unused / blank columns (`ind1`, `ind2`)
+### 3. 🤖 AI Sales Assistant
+- **Deterministic Natural Language Query Engine**:
+  - Pure dataset-grounded calculations using Pandas — **zero hallucinations, no paid external AI dependencies**.
+  - Answers questions on revenue, profit, margins, top products, best/worst months, regional comparisons, and entity trends.
+  - Direct visualization of query results with interactive Plotly charts, expandable supporting data tables formatted in INR, and context pills (dimension, metric, entity, dates).
+- **Explicit Coverage Limitation Disclosures**:
+  - Automatically identifies out-of-scope concepts (e.g. employee attrition, inventory levels, weather, unmapped entities like India when data covers US states).
+  - Returns clear, professional coverage guidance disclosing available dataset boundaries.
 
 ---
 
-## 📐 PRD Reference Dataset Validation
+## 🛠️ Data Pipeline & Currency Management
 
-Tested against `data/sample/SuperStore_Sales_Dataset.csv`:
+- **12-Step Ingestion & Normalization Pipeline** (`backend/pipeline.py`):
+  - Non-destructive processing of CSV, Excel (`.xlsx`, `.xls`), and TSV files.
+  - Automatic column mapping with heuristic confidence scoring.
+  - Robust date parsing handling `DD-MM-YYYY` formats with `dayfirst=True` safeguards.
+  - Automatic handling of duplicate rows, whitespace, and blank columns (`ind1`, `ind2`).
+- **Standardized Currency Engine** (`backend/analytics/currency.py`):
+  - Full Indian Rupee (`₹`) formatting across KPI cards, charts, tooltips, tables, exports, and chat responses.
+  - Configurable source currency and exchange rates (default `83.5 INR/USD`).
+  - No inconsistent dollar (`$`) symbols in the user interface.
+- **Dataset & Filter Management**:
+  - **Reset All Filters**: Restores the full currently loaded dataset without losing data.
+  - **Clear Current Dataset**: Wipes the active dataset and returns the application to a clean empty state.
+  - **1-Click Sample Loader**: Instant reload of the built-in SuperStore dataset from the sidebar or empty state.
 
-| Reference Item | PRD Specification | Application Value | Status |
+---
+
+## 📐 Reference Dataset Validation
+
+Tested and verified against `data/sample/SuperStore_Sales_Dataset.csv`:
+
+| Reference Metric | PRD Specification | Application Value | Status |
 | :--- | :--- | :--- | :--- |
 | **Total Rows** | 5,901 rows | 5,901 rows | ✅ Verified |
 | **Distinct Orders** | 3,003 distinct Order IDs | 3,003 distinct Order IDs | ✅ Verified |
@@ -92,46 +80,46 @@ Tested against `data/sample/SuperStore_Sales_Dataset.csv`:
 | **Geographic Scope** | 49 states, 4 regions | 49 states, 4 regions | ✅ Verified |
 | **Categories** | 3 categories, 17 sub-categories | 3 categories, 17 sub-categories | ✅ Verified |
 | **Date Range** | 2019-01-01 to 2020-12-31 | 2019-01-01 to 2020-12-31 | ✅ Verified |
-| **Returns Limitation** | 5,614 `#N/A` rows, 287 tracked returns | 5,614 missing, 287 tracked | ✅ Verified & Disclosed |
-| **Malformed / Blank Cols** | `ind1`, `ind2` blank; BOM on header | Flagged & handled safely | ✅ Verified |
+| **Shipping Duration** | Tracked shipping days | Average 3.9 days | ✅ Verified |
 
 ---
 
-## 📂 Repository Layout
+## 📂 Repository Architecture
 
 ```text
 sales-performance-dashboard/
-|-- frontend/                 # Streamlit pages and visual components
-|   |-- app.py                # Primary entry point selected for deployment
-|   |-- pages/                # Modular view pages
-|   |   |-- home.py
-|   |   |-- dashboard.py
-|   |   |-- guided_analysis.py
-|   |   |-- automatic_overview.py
-|   |   |-- chat_view.py
-|   |   `-- data_quality.py
-|   |-- components/           # Reusable UI modules
-|   |   |-- kpi_card.py
-|   |   |-- filters.py
-|   |   `-- charts.py
+|-- frontend/                     # Streamlit presentation layer
+|   |-- app.py                    # Main application controller & navigation
+|   |-- views/                    # Primary application views
+|   |   |-- dashboard_view.py     # 📊 Executive Dashboard view
+|   |   |-- sales_analysis_view.py# 🔎 Multidimensional & Period Comparison view
+|   |   `-- ai_assistant_view.py  # 🤖 Natural language AI assistant view
+|   |-- components/               # Reusable visual components
+|   |   |-- kpi_card.py           # Standardized KPI cards
+|   |   |-- charts.py             # Plotly chart generators
+|   |   `-- map.py                # Geographic maps
 |   `-- styles/
-|       `-- main.css          # Executive typography and card styling
-|-- backend/                  # Analytical & data processing services
-|   |-- file_handling/        # Robust CSV, Excel, TSV reader
-|   |-- cleaning/             # Data quality audit & normalization
-|   |-- column_mapping/       # Heuristic semantic column detector
-|   |-- analytics/            # KPIs, trends, geography, drill-down, insights
-|   |-- chat/                 # Deterministic query engine
-|   `-- exports/              # PDF and Excel generators
-|-- data/sample/              # Safe sample dataset (SuperStore CSV)
-|-- tests/                    # Acceptance & calculation unit tests
-|   `-- test_calculations.py
+|       `-- main.css              # Dark Navy BI theme styling
+|-- backend/                      # Analytical, data processing & chat services
+|   |-- pipeline.py               # 12-step data ingestion & normalization pipeline
+|   |-- analytics/                # Calculations (KPIs, currency, shipping, insights)
+|   |-- chat/                     # Deterministic query engine & coverage guardrails
+|   |-- cleaning/                 # Data quality checks, deduplication & normalization
+|   |-- column_mapping/           # Semantic column detector & confidence scoring
+|   |-- forecasting/              # Moving-average sales forecasting
+|   |-- file_handling/            # CSV, Excel, TSV reader
+|   `-- exports/                  # CSV, Excel (.xlsx), and PDF generators
+|-- data/sample/                  # Reference sample data (SuperStore_Sales_Dataset.csv)
+|-- tests/                        # Automated test suite (30 unit & platform tests)
+|   |-- test_calculations.py      # Core KPI and metric calculation tests
+|   |-- test_platform.py          # Platform, key uniqueness, and export tests
+|   |-- test_redesign.py          # Chatbot, currency, shipping, and NLP tests
+|   `-- test_quick.py             # Quick pipeline sanity check
 |-- .streamlit/
-|   `-- config.toml           # Theme and deployment parameters
-|-- app.py                    # Root entry point launcher
-|-- requirements.txt          # Python dependencies
-|-- README.md                 # Complete documentation
-`-- .gitignore                # Excludes secrets, caches, private uploads
+|   `-- config.toml               # Streamlit theme & server configuration
+|-- app.py                        # Root launcher entry point
+|-- requirements.txt              # Project dependencies
+`-- README.md                     # Comprehensive project documentation
 ```
 
 ---
@@ -139,7 +127,7 @@ sales-performance-dashboard/
 ## 🚀 Local Installation & Execution
 
 ### 1. Prerequisites
-- Python 3.9+ installed.
+- Python 3.9, 3.10, or 3.11 installed.
 
 ### 2. Clone Repository
 ```bash
@@ -152,9 +140,10 @@ cd sales-performance-dashboard
 pip install -r requirements.txt
 ```
 
-### 4. Run Acceptance Tests
+### 4. Run Automated Test Suite
+Run all 30 automated test cases:
 ```bash
-python -m unittest tests/test_calculations.py
+python -m pytest
 ```
 
 ### 5. Launch the Application
@@ -162,7 +151,7 @@ Run via the root launcher:
 ```bash
 streamlit run app.py
 ```
-Or via the frontend entry point:
+Or directly via the frontend module:
 ```bash
 streamlit run frontend/app.py
 ```
@@ -172,24 +161,16 @@ Open your browser at `http://localhost:8501`.
 
 ## 🌐 Deployment to Streamlit Community Cloud
 
-Deploy in under 3 minutes:
-
-1. **Push to GitHub**:
+1. **Commit & Push to GitHub**:
    ```bash
-   git init
    git add .
-   git commit -m "feat: complete sales performance dashboard MVP"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/sales-performance-dashboard.git
-   git push -u origin main
+   git commit -m "feat: complete production-ready sales performance dashboard"
+   git push origin main
    ```
 
-2. **Connect to Streamlit Community Cloud**:
-   - Go to [share.streamlit.io](https://share.streamlit.io) and log in with your GitHub account.
+2. **Deploy on Streamlit Cloud**:
+   - Visit [share.streamlit.io](https://share.streamlit.io) and sign in.
    - Click **"New app"**.
-   - Select your repository: `<your-username>/sales-performance-dashboard`.
-   - Select Branch: `main`.
-   - Set **Main file path**: `frontend/app.py` (or `app.py`).
+   - Select your repository and `main` branch.
+   - Set **Main file path** to `app.py` (or `frontend/app.py`).
    - Click **"Deploy!"**.
-
-3. Your live dashboard will be accessible via a public shareable URL.

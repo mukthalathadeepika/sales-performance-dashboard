@@ -95,7 +95,10 @@ class TestSuperStoreAcceptance(unittest.TestCase):
         """Verify chat deterministic replies and out-of-scope handling."""
         # 1. Sales question
         res_sales = process_query("What are total sales?", self.clean_df)
-        self.assertIn("1,565,804.32", res_sales["answer_text"])
+        self.assertIn("₹", res_sales["answer_text"])
+        self.assertNotIn("$", res_sales["answer_text"])
+        from backend.analytics.currency import format_inr
+        self.assertIn(format_inr(1565804.32), res_sales["answer_text"])
 
         # 2. Out-of-scope country (India)
         res_india = process_query("What are sales in India?", self.clean_df)
