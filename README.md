@@ -1,6 +1,22 @@
-# Sales Performance Dashboard MVP
+# Sales Performance Dashboard
 
-A business analytics and intelligence web application built with **Python**, **Streamlit**, **Pandas**, and **Plotly** to inspect, visualize, compare, and query sales data.
+## 🚀 Live Dashboard
+
+[Open Live Dashboard](https://muktha-sales-dashboard.streamlit.app/)
+
+## 💻 Project Repository
+
+[View Source Code on GitHub](https://github.com/mukthalathadeepika/sales-performance-dashboard)
+
+This project is a Sales Performance Dashboard developed as part of my Syntecxhub internship.
+
+### Features
+- Sales and profit KPIs
+- Monthly, quarterly and yearly analysis
+- Product and category analysis
+- Region-wise analysis
+- Interactive filters
+- Sales and profitability insights
 
 Built in strict adherence to business intelligence standards and validated against the reference **SuperStore Sales Dataset** (5,901 records, 2019–2020).
 
