@@ -161,6 +161,7 @@ def _render_kpi_cards(df, period_changes):
             "change_key": "Total Sales",
             "subtitle": "Gross revenue",
             "color_cls": "",
+            "accent": "#2563EB",
         },
         {
             "title": "Total Profit",
@@ -169,6 +170,7 @@ def _render_kpi_cards(df, period_changes):
             "change_key": "Total Profit",
             "subtitle": f"{margin:.1f}% net margin" if margin is not None else "Net earnings",
             "color_cls": "green",
+            "accent": "#10B981",
         },
         {
             "title": "Total Orders",
@@ -177,6 +179,7 @@ def _render_kpi_cards(df, period_changes):
             "change_key": "Total Orders",
             "subtitle": "Distinct orders" if ho else "Line items",
             "color_cls": "teal",
+            "accent": "#0EA5E9",
         },
         {
             "title": "Total Quantity",
@@ -185,6 +188,7 @@ def _render_kpi_cards(df, period_changes):
             "change_key": "Units Sold",
             "subtitle": "Units shipped" if hq else "Total records",
             "color_cls": "purple",
+            "accent": "#818CF8",
         },
         {
             "title": "Profit Margin",
@@ -193,6 +197,7 @@ def _render_kpi_cards(df, period_changes):
             "change_key": "Profit Margin",
             "subtitle": "Net profit / sales",
             "color_cls": "orange",
+            "accent": "#F59E0B",
         },
         {
             "title": "Average Order Value",
@@ -201,36 +206,151 @@ def _render_kpi_cards(df, period_changes):
             "change_key": "Average Order Value",
             "subtitle": f"{to:,} transactions",
             "color_cls": "cyan",
+            "accent": "#38BDF8",
         },
     ]
 
-    cards_html = []
-    for k in kpis:
+    st.markdown(
+        """
+        <style>
+        .kpi-card {
+            background: #121D38;
+            border: 1px solid rgba(59, 130, 246, 0.22);
+            border-radius: 10px;
+            padding: 1.05rem 1.15rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.32);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 136px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+            border-color: rgba(59, 130, 246, 0.45);
+        }
+        .kpi-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.45rem;
+        }
+        .kpi-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94A3B8;
+        }
+        .kpi-icon {
+            font-size: 1.05rem;
+            opacity: 0.9;
+        }
+        .kpi-value {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #F8FAFC;
+            letter-spacing: -0.025em;
+            line-height: 1.15;
+            margin-bottom: 0.45rem;
+        }
+        .kpi-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: auto;
+            padding-top: 4px;
+        }
+        .kpi-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.69rem;
+            width: fit-content;
+        }
+        .kpi-pill.positive {
+            background: rgba(34, 197, 94, 0.14);
+            color: #34D399;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .kpi-pill.negative {
+            background: rgba(239, 68, 68, 0.14);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .kpi-pill.neutral {
+            background: rgba(37, 99, 235, 0.15);
+            color: #60A5FA;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .kpi-subtitle {
+            font-size: 0.72rem;
+            color: #94A3B8;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    c1, c2, c3, c4, c5, c6 = st.columns(6, gap="small")
+    cols = [c1, c2, c3, c4, c5, c6]
+
+    for col, k in zip(cols, kpis):
         change = period_changes.get(k["change_key"])
         if change is not None:
             arrow = "↑" if change >= 0 else "↓"
             c_cls = "positive" if change >= 0 else "negative"
-            pill_html = f'<span class="kpi-pill {c_cls}">{arrow} {abs(change):.1f}% vs prev period</span>'
+            pill_text = f"{arrow} {abs(change):.1f}% vs prev period"
+            pill_style = (
+                "background: rgba(34, 197, 94, 0.14); color: #34D399; border: 1px solid rgba(34, 197, 94, 0.3);"
+                if change >= 0
+                else "background: rgba(239, 68, 68, 0.14); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3);"
+            )
         else:
-            pill_html = '<span class="kpi-pill neutral">• Active scope</span>'
+            c_cls = "neutral"
+            pill_text = "• Active scope"
+            pill_style = "background: rgba(37, 99, 235, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3);"
+
+        pill_html = (
+            f'<span class="kpi-pill {c_cls}" '
+            f'style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 5px; '
+            f'font-weight: 600; font-size: 0.69rem; width: fit-content; {pill_style}">'
+            f'{pill_text}</span>'
+        )
 
         card = (
-            f'<div class="kpi-card {k["color_cls"]}">'
-            f'<div class="kpi-card-header">'
-            f'<span class="kpi-title">{k["title"]}</span>'
-            f'<span class="kpi-icon">{k["icon"]}</span>'
+            f'<div class="kpi-card {k["color_cls"]}" '
+            f'style="background: #121D38; border: 1px solid rgba(59, 130, 246, 0.22); '
+            f'border-top: 3px solid {k["accent"]}; border-radius: 10px; padding: 1.05rem 1.15rem; '
+            f'min-height: 136px; display: flex; flex-direction: column; justify-content: space-between; '
+            f'box-shadow: 0 4px 20px rgba(0,0,0,0.32); position: relative; overflow: hidden; '
+            f'box-sizing: border-box; width: 100%;">'
+            f'<div class="kpi-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">'
+            f'<span class="kpi-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94A3B8;">{k["title"]}</span>'
+            f'<span class="kpi-icon" style="font-size: 1.05rem; opacity: 0.9;">{k["icon"]}</span>'
             f'</div>'
-            f'<div class="kpi-value">{k["value"]}</div>'
-            f'<div class="kpi-footer">'
-            f'{pill_html}'
-            f'<span class="kpi-subtitle">{k["subtitle"]}</span>'
+            f'<div class="kpi-value" style="font-size: 1.55rem; font-weight: 800; color: #F8FAFC; letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 0.45rem;">{k["value"]}</div>'
+            f'<div class="kpi-footer" style="display: flex; flex-direction: column; gap: 4px; margin-top: auto; padding-top: 4px;">'
+            f'<div style="display: flex; align-items: center;">{pill_html}</div>'
+            f'<div class="kpi-subtitle" style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;" title="{k["subtitle"]}">{k["subtitle"]}</div>'
             f'</div>'
             f'</div>'
         )
-        cards_html.append(card)
-
-    grid_html = f'<div class="kpi-grid">{"".join(cards_html)}</div>'
-    st.markdown(grid_html, unsafe_allow_html=True)
+        with col:
+            st.markdown(card, unsafe_allow_html=True)
 
 
 def _render_filter_controls(clean_df):
